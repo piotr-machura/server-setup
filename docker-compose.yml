@@ -1,0 +1,12 @@
+version: '3'
+services:
+  nginx:
+    image: nginx-certbot
+    container_name: webserver
+    volumes:
+      - ./data/html:/usr/share/nginx/html:ro
+      - ./data/letsencrypt:/etc/letsencrypt
+      - ./config/nginx:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
