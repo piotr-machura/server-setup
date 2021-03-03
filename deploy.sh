@@ -1,5 +1,5 @@
 #!/bin/bash
-homedir=$(pwd)
+workdir=$(pwd)
 # Enable docker repository, install engine and compose
 dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 dnf install docker-ce docker-ce-cli containerd.io
@@ -7,9 +7,9 @@ curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compo
 chmod +x /usr/bin/docker-compose
 
 # Create directories for docker volumes
-mkdir --parents $homedir/data/html $homedir/data/letsencrypt
+mkdir --parents $workdir/data/html $workdir/data/letsencrypt
 # Build the nginx-certbot image
-cd $homedir/build
+cd $workdir/build
 docker build -t nginx-certbot .
 # Run the containers
 cd $homedir
