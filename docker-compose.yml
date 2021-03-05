@@ -7,6 +7,7 @@ services:
       - ./data/html:/usr/share/nginx/html:ro
       - ./data/letsencrypt:/etc/letsencrypt
       - ./config/nginx:/etc/nginx/conf.d
+      - ./data/log/letsencrypt:/var/log/letsencrypt
     ports:
       - "80:80"
       - "443:443"
