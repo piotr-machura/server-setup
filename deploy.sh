@@ -7,10 +7,10 @@
 # commands to apt counterparts and firewall-cmd configuration to UFW (although
 # Docker is known to disregard firewall wrappers and talk directly to iptables)
 
-read -p "Specify your domain name: "
+read -p "Specify your domain name (empty for default): "
 domain="$REPLY"
-[[ ! -z "$domain" ]] && [[ "$domain" != "piotr-machura.com" ]] && \
-    find . -exec sed -e -i.bak "s/piotr-machura.com/$domain/g" {} \;
+[[ ! -z "$domain" ]] && echo "Replacing piotr-machura.com with $domain..." && \
+    find ./config ./docker-compose.yml -type f -exec sed -i -e "s/piotr-machura.com/$domain/g" {} \;
 
 # Enable docker repository, install engine and compose
 dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -31,4 +31,4 @@ mkdir --parents ./data/log/letsencrypt
 docker-compose up --build --detach
 
 # Obtain SSL certificates
-docker exec -it webserver certbot --nginx --agree-tos
+docker exec -it nginx-proxy certbot --nginx --agree-tos

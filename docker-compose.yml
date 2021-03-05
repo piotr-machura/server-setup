@@ -1,8 +1,8 @@
 version: '3'
 services:
-  nginx:
-    image: nginx-certbot
-    container_name: webserver
+  webserver:
+    build: ./build
+    container_name: nginx-proxy
     volumes:
       - ./data/html:/usr/share/nginx/html:ro
       - ./data/letsencrypt:/etc/letsencrypt
