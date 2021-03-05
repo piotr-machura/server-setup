@@ -11,3 +11,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+
+  webmail:
+    image: nginx:alpine # For testing purposes
+    container_name: roundcube
