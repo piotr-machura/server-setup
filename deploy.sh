@@ -23,12 +23,14 @@ firewall-cmd --permanent --zone=public --add-service=http
 firewall-cmd --permanent --zone=public --add-service=https
 firewall-cmd --reload
 
-# Create directories for docker volumes and logs
-mkdir --parents ./data/html ./data/letsencrypt
-mkdir --parents ./data/log/letsencrypt
+# Create directories for docker volumes
+mkdir --parents ./data/html ./data/letsencrypt ./data/log/letsencrypt
+mkdir --parents ./data/mail/maildata ./data/mail/state ./data/log/mail
+mkdir --parents ./data/roundcube/html ./data/roundcube/db
+mkdir --parents ./data/openldap/ldap ./data/openldap/ldap-conf
 
 # Build the nginx-certbot image and start the containers
 docker-compose up --build --detach
 
 # Obtain SSL certificates
-docker exec -it nginx-proxy certbot --nginx --agree-tos
+docker exec -it nginx-certbot certbot --nginx --agree-tos
