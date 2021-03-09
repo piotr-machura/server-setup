@@ -9,8 +9,9 @@
 
 read -p "Specify your domain name (empty for default): "
 domain="$REPLY"
-[[ ! -z "$domain" ]] && echo "Replacing piotr-machura.com with $domain..." && \
-    find ./config ./docker-compose.yml -type f -exec sed -i -e "s/piotr-machura.com/$domain/g" {} \;
+default_domain="piotr-machura.com"
+[[ ! -z "$domain" ]] && echo "Replacing $default_domain with $domain..." && \
+    find ./config ./docker-compose.yml -type f -exec sed -i -e "s/$default_domain/$domain/g" {} \;
 
 # Enable docker repository, install engine and compose
 dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -27,7 +28,7 @@ firewall-cmd --reload
 mkdir --parents ./data/html ./data/letsencrypt ./data/log/letsencrypt
 mkdir --parents ./data/mail/maildata ./data/mail/state ./data/log/mail
 mkdir --parents ./data/roundcube/html ./data/roundcube/db
-mkdir --parents ./data/openldap/ldap ./data/openldap/ldap-conf
+mkdir --parents ./data/radicale
 
 # Build the nginx-certbot image and start the containers
 docker-compose up --build --detach

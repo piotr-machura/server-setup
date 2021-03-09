@@ -15,3 +15,11 @@ services:
   webmail:
     image: nginx:alpine # For testing purposes
     container_name: roundcube
+    volumes:
+      - ./data/roundcube/html:/usr/share/nginx/html:ro
+
+  carddav:
+    image: nginx:alpine # For testing purposes
+    container_name: radicale
+    volumes:
+      - ./data/radicale:/usr/share/nginx/html:ro
