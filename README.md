@@ -5,9 +5,9 @@ Software running in containers using [Docker](https://docker.com/).
 
 **Software**:
 
-- [Web server](https://hub.docker.com/_/nginx/) hosting a static website, modified to automatically obtain and renew SSL certificates using [certbot](https://certbot.eff.org/).
+- [Web server](https://nginx.org/en/) hosting a static website, modified to automatically obtain and renew SSL certificates using [certbot](https://certbot.eff.org/).
 - Full stack [email server](https://github.com/docker-mailserver/docker-mailserver).
 - [Roundcube](https://roundcube.net/) webmail client located in  domain.com/mail
-- [LDAP](https://github.com/osixia/docker-openldap) server for Roundcube's address book
+- [CardDAV](https://radicale.org/3.0.html) server for Roundcube's address book
 
 Full setup documentation in English for future reference. Deployment with a single version controlled shell script (or a set of scripts if necessary).
