@@ -1,7 +1,7 @@
 version: '3'
 services:
   webserver:
-    build: ./build
+    build: ./build/nginx-certbot
     container_name: nginx-certbot
     volumes:
       - ./data/html:/usr/share/nginx/html:ro
@@ -11,15 +11,22 @@ services:
     ports:
       - "80:80"
       - "443:443"
-
   webmail:
-    image: nginx:alpine # For testing purposes
+    image: roundcube/roundcubemail:latest
     container_name: roundcube
     volumes:
-      - ./data/roundcube/html:/usr/share/nginx/html:ro
-
+      - ./data/roundcube/html:/var/www/html
+      - ./data/roundcube/sqlite:/var/roundcube/db
+    environment:
+      - ROUNDCUBEMAIL_DB_TYPE=sqlite
+      - ROUNDCUBEMAIL_SKIN=elastic
+      - ROUNDCUBEMAIL_DEFAULT_HOST=tls://outlook.office365.com
+      - ROUNDCUBEMAIL_SMTP_SERVER=tls://smtp.office365.com
   carddav:
-    image: nginx:alpine # For testing purposes
+    build: ./build/radicale
     container_name: radicale
     volumes:
-      - ./data/radicale:/usr/share/nginx/html:ro
+      - ./data/radicale:/var/radicale/data
+      - ./config/radicale:/var/radicale/config:ro
+    ports:
+      - "8000:8000"
