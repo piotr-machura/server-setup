@@ -59,7 +59,7 @@ case $1 in
 
     "ssl" | "-s")
         # Obtain SSL certificates
-        docker exec -it nginx-certbot certbot --nginx --agree-tos -d "$domain" -d "www.$domain"
+        docker exec -it nginx-certbot certbot --nginx --agree-tos -d "$domain" -d "www.$domain" -d "dav.$domain"
         ;;
 
     "mail" | "-m")
