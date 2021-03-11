@@ -2,31 +2,34 @@ version: '3'
 services:
   webserver:
     build: ./build/nginx-certbot
+    image: local/nginx-certbot
     container_name: nginx-certbot
     volumes:
+      - ./config/nginx:/etc/nginx/conf.d
       - ./data/html:/usr/share/nginx/html:ro
       - ./data/letsencrypt:/etc/letsencrypt
-      - ./config/nginx:/etc/nginx/conf.d
       - ./data/log/letsencrypt:/var/log/letsencrypt
     ports:
       - "80:80"
       - "443:443"
+
   webmail:
-    image: roundcube/roundcubemail:latest
+    build: ./build/roundcube
+    image: local/roundcube
     container_name: roundcube
     volumes:
-      - ./data/roundcube/html:/var/www/html
-      - ./data/roundcube/sqlite:/var/roundcube/db
+      - ./data/roundcube:/var/roundcube/db
+      - ./config/roundcube:/var/roundcube/config
     environment:
       - ROUNDCUBEMAIL_DB_TYPE=sqlite
       - ROUNDCUBEMAIL_SKIN=elastic
       - ROUNDCUBEMAIL_DEFAULT_HOST=tls://outlook.office365.com
       - ROUNDCUBEMAIL_SMTP_SERVER=tls://smtp.office365.com
+
   carddav:
     build: ./build/radicale
+    image: local/radicale
     container_name: radicale
     volumes:
       - ./data/radicale:/var/radicale/data
       - ./config/radicale:/var/radicale/config:ro
-    ports:
-      - "8000:8000"
