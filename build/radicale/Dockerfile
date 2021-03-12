@@ -8,7 +8,6 @@ RUN set -xe && \
 
 COPY ./config.ini /var/radicale/config/config.ini
 
-VOLUME ["/var/radicale"]
 VOLUME ["/var/radicale/data"]
 VOLUME ["/var/radicale/config"]
 
