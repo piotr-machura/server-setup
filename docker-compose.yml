@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   webserver:
     build: ./build/nginx-certbot
     image: local/nginx-certbot
@@ -8,7 +9,6 @@ services:
       - ./config/nginx:/etc/nginx/conf.d
       - ./data/html:/usr/share/nginx/html:ro
       - ./data/letsencrypt:/etc/letsencrypt
-      - ./data/log/letsencrypt:/var/log/letsencrypt
     ports:
       - "80:80"
       - "443:443"
@@ -18,8 +18,8 @@ services:
     image: local/roundcube
     container_name: roundcube
     volumes:
+      - ./config/roundcube:/var/roundcube/config:ro
       - ./data/roundcube:/var/roundcube/db
-      - ./config/roundcube:/var/roundcube/config
     environment:
       - ROUNDCUBEMAIL_DB_TYPE=sqlite
       - ROUNDCUBEMAIL_SKIN=elastic
@@ -31,5 +31,5 @@ services:
     image: local/radicale
     container_name: radicale
     volumes:
-      - ./data/radicale:/var/radicale/data
       - ./config/radicale:/var/radicale/config:ro
+      - ./data/radicale:/var/radicale/data
