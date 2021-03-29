@@ -13,7 +13,7 @@ _usage() {
     echo "
     Server deployment and management script.
 
-    Use this to install, manage user accounts and email server. 
+    Use this to install, manage user accounts and email server.
 
     Usage:
         init - install missing software, build the images and start the containers.
@@ -80,11 +80,14 @@ case $1 in
         ;;
 
     "-u")
-        [[ "$#" != "3" ]] && echo "Please provide arguments: <username> <password>" && _usage
+        [[ "$#" != "1" ]] && echo "Illegal arguments for $1: ${@:2}" && _usage
+        read -p "User (will become user@$DOMAIN): " user
+        read -p -s "Password: " pass
         # Add users to mailserver and radicale
-        docker exec -t radicale htpasswd -b -c /var/radicale/data/users "$2@$DOMAIN" "$3"
-        ./data/mail.sh -c mail -p ./config/mailserver email add "$2@$DOMAIN" "$3"
-        echo "Added $2@$DOMAIN to email and carddav servers."
+        docker exec -t radicale \
+            htpasswd -B -b -c /var/radicale/data/users "$user@$DOMAIN" "$pass"
+        ./data/mail.sh -c mail -p ./config/mailserver email add "$user@$DOMAIN" "$pass"
+        echo "Added $user@$DOMAIN to email and carddav servers."
         ;;
 
     "-s")

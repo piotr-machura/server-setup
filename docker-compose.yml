@@ -1,10 +1,10 @@
 version: '3'
 services:
-
   webserver:
     build: ./build/nginx-certbot
     image: local/nginx-certbot
     container_name: nginx-certbot
+    restart: unless-stopped
     volumes:
       - ./config/nginx:/etc/nginx/conf.d
       - ./data/html:/usr/share/nginx/html:ro
@@ -12,24 +12,57 @@ services:
     ports:
       - "80:80"
       - "443:443"
-
   webmail:
     build: ./build/roundcube
     image: local/roundcube
     container_name: roundcube
+    restart: unless-stopped
     volumes:
       - ./config/roundcube:/var/roundcube/config:ro
       - ./data/roundcube:/var/roundcube/db
     environment:
       - ROUNDCUBEMAIL_DB_TYPE=sqlite
       - ROUNDCUBEMAIL_SKIN=elastic
-      - ROUNDCUBEMAIL_DEFAULT_HOST=tls://outlook.office365.com
-      - ROUNDCUBEMAIL_SMTP_SERVER=tls://smtp.office365.com
-
+      - ROUNDCUBEMAIL_UPLOAD_MAX_FILESIZE=75M
+      - ROUNDCUBEMAIL_DEFAULT_HOST=tls://mail.piotr-machura.com
+      - ROUNDCUBEMAIL_SMTP_SERVER=tls://mail.piotr-machura.com
   carddav:
     build: ./build/radicale
     image: local/radicale
     container_name: radicale
+    restart: unless-stopped
     volumes:
       - ./config/radicale:/var/radicale/config:ro
       - ./data/radicale:/var/radicale/data
+  mailserver:
+    image: docker.io/mailserver/docker-mailserver:latest
+    container_name: mailserver
+    restart: always
+    hostname: mail
+    domainname: piotr-machura.com
+    ports:
+      - "25:25"
+      - "143:143"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - ./data/mailserver/mail:/var/mail
+      - ./data/mailserver/state:/var/mail-state
+      - ./data/mailserver/logs:/var/log/mail
+      - ./data/letsencrypt:/etc/letsencrypt:ro
+      - ./config/mailserver:/tmp/docker-mailserver
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - ONE_DIR=1
+      - SPOOF_PROTECTION=1
+      - ENABLE_CLAMAV=1
+      - ENABLE_AMAVIS=1
+      - POSTSCREEN_ACTION=enforce
+      - SSL_TYPE=letsencrypt
+      - POSTFIX_MAILBOX_SIZE_LIMIT=10000000000
+      - POSTFIX_MESSAGE_SIZE_LIMIT=80000000
+      - POSTFIX_INET_PROTOCOLS=ipv4
+      - ENABLE_SPAMASSASSIN=1
+      - SPAMASSASSIN_SPAM_TO_INBOX=1
+      - MOVE_SPAM_TO_JUNK=1
+    cap_add: [ "NET_ADMIN", "SYS_PTRACE" ]
