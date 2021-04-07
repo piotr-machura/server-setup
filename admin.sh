@@ -25,22 +25,35 @@ _usage() {
 Use this to manage user accounts, SSL certificates and email server.
 
 $bold Usage:$normal
-    -ca -$green add$normal username to CardDAV server.
-    -cd -$red delete$normal username from CardDAV server.
+    -ca -$green add$normal username to CardDAV server. Prompts for input.
+    -cd -$red delete$normal username from CardDAV server. Prompts for input.
+    -cl - list CardDAV users.
     -s  - obtain SSL certificates for $DOMAIN, www.$DOMAIN, dav.$DOMAIN, and mail.$DOMAIN using Certbot.
-    -m  - pass arguments to docker-mailserver's$yellow setup.sh$normal. Add --help for more information.
+    -m  - pass arguments to docker-mailserver's$yellow setup.sh$normal. Add$green help$normal for more information.
     -h  - display this message."
 }
 case $1 in
-    "-u")
+    "-ca")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        read -p "User (will become user@$DOMAIN): " user
-        read -p -s "Password: " pass
+        read -p "Username: " user
+        read -p "Password: " -s pass
         # Add users to mailserver and radicale
         docker exec -t radicale \
-            htpasswd -B -b -c /var/radicale/data/users "$user@$DOMAIN" "$pass"
-        ./data/mail/mail.sh -c mail -p ./data/mailserver/config email add "$user@$DOMAIN" "$pass"
-        echo "Added $user@$DOMAIN to email and carddav servers."
+            htpasswd -B -b /var/radicale/data/users "$user" "$pass"
+        msg "Added $user to CardDAV server" $green
+        ;;
+
+    "-cd")
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        read -p "Username: " user
+        docker exec -t radicale \
+            htpasswd -D /var/radicale/data/users "$user"
+        msg "Removed $user from CardDAV server" $green
+        ;;
+
+    "-cl")
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        while read line; do echo ${line%%:*}; done < ./data/radicale/users
         ;;
 
     "-s")
@@ -52,7 +65,7 @@ case $1 in
 
     "-m")
         # Pass arguments to docker-mailserver's setup.sh
-        ./data/mail/mail.sh -c mail -p ./data/mailserver/config "${@:2}"
+        ./data/mailserver/setup.sh -c mailserver -p $(pwd)/data/mailserver/config "${@:2}"
         ;;
 
     "-h" )

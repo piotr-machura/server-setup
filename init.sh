@@ -26,7 +26,7 @@ if [[ "$DOMAIN" != "$DEFAULT_DOMAIN" ]]; then
 fi
 msg "Initializing with domain $DOMAIN" $green
 
-if [[ -z "$(command -v docker &>/dev/null)" ]]; then
+if [[ -z "$(command -v docker 2>/dev/null)" ]]; then
     msg "No Docker engine in PATH, installing" $yellow
     dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null
     dnf install docker-ce docker-ce-cli containerd.io > /dev/null
@@ -34,9 +34,9 @@ if [[ -z "$(command -v docker &>/dev/null)" ]]; then
 else
     msg "Found Docker engine" $green
 fi
-if [[-z "$(command -v docker-compose &>/dev/null)" ]]; then
+if [[-z "$(command -v docker-compose 2>/dev/null)" ]]; then
     msg "No docker-compose in PATH, installing" $yellow
-    curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compose-$(uname -s)-$(uname -m)" -o /user/bin/docker-compose
+    curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
     chmod +x /usr/bin/docker-compose
     msg "Done" $green
 else
@@ -53,7 +53,7 @@ msg "Done" $green
 
 if [[ ! -f "./data/mailserver/setup.sh" ]]; then
     msg "Mailserver admin script not found, downloading" $yellow
-    curl https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/v9.0.1/setup.sh > ./data/mailserver/setup.sh.sh
+    curl https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/v9.0.1/setup.sh > ./data/mailserver/setup.sh
     chmod +x ./data/mailserver/setup.sh
     msg "Done" $green
 fi
