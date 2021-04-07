@@ -13,7 +13,7 @@ DOMAIN="piotr-machura.com"
 
 # Message formatting function
 function msg() {
-    echo -e "\e[1;37m[$2 $1 \e[1;37m]\e[m"
+    echo -e "\e[1;37m=>$2 $1 \e[m"
 }
 green="\e[1;32m"
 yellow="\e[1;33m"
@@ -34,7 +34,7 @@ if [[ -z "$(command -v docker 2>/dev/null)" ]]; then
 else
     msg "Found Docker engine" $green
 fi
-if [[-z "$(command -v docker-compose 2>/dev/null)" ]]; then
+if [[ -z "$(command -v docker-compose 2>/dev/null)" ]]; then
     msg "No docker-compose in PATH, installing" $yellow
     curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
     chmod +x /usr/bin/docker-compose
@@ -59,7 +59,7 @@ if [[ ! -f "./data/mailserver/setup.sh" ]]; then
 fi
 
 msg "Starting the containers" $yellow
-docker-compose up --build --detach
+docker-compose up --detach
 msg "Initial setup complete" $green
 if [[ ! -z $(ls ./data/letsencrypt/live &>/dev/null) ]]; then
     msg "No certificates found, launching Certbot" $yellow

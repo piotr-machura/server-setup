@@ -9,22 +9,21 @@
 # Specify your base domain here
 DOMAIN="piotr-machura.com"
 
-# Message formatting function
-function msg() {
-    echo -e "\e[1;37m[$2 $1 \e[1;37m]\e[m"
-}
+# Message formatting functions
 green="\e[1;32m"
 yellow="\e[1;33m"
 red="\e[1;31m"
 bold="\e[1;37m"
 normal="\e[m"
-
+function msg() {
+    echo -e "$bold=>$2 $1 \e[m"
+}
 _usage() {
     echo -en "$bold"
     echo -e "Server management script.$normal
 Use this to manage user accounts, SSL certificates and email server.
-
-$bold Usage:$normal
+$bold
+Usage:$normal
     -ca -$green add$normal username to CardDAV server. Prompts for input.
     -cd -$red delete$normal username from CardDAV server. Prompts for input.
     -cl - list CardDAV users.
@@ -35,8 +34,10 @@ $bold Usage:$normal
 case $1 in
     "-ca")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        read -p "Username: " user
-        read -p "Password: " -s pass
+        echo -ne "$bold=>$green Username:$normal "
+        read user
+        echo -ne "$bold=>$green Password:$normal "
+        read -s pass
         # Add users to mailserver and radicale
         docker exec -t radicale \
             htpasswd -B -b /var/radicale/data/users "$user" "$pass"
@@ -45,7 +46,8 @@ case $1 in
 
     "-cd")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        read -p "Username: " user
+        echo -ne "$bold=>$yellow Username:$normal "
+        read user
         docker exec -t radicale \
             htpasswd -D /var/radicale/data/users "$user"
         msg "Removed $user from CardDAV server" $green

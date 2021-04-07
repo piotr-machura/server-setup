@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   webserver:
     build: ./build/nginx-certbot
     image: local/nginx-certbot
@@ -12,6 +13,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+
   webmail:
     build: ./build/roundcube
     image: local/roundcube
@@ -26,6 +28,7 @@ services:
       - ROUNDCUBEMAIL_UPLOAD_MAX_FILESIZE=75M
       - ROUNDCUBEMAIL_DEFAULT_HOST=tls://mail.piotr-machura.com
       - ROUNDCUBEMAIL_SMTP_SERVER=tls://mail.piotr-machura.com
+
   carddav:
     build: ./build/radicale
     image: local/radicale
@@ -34,8 +37,9 @@ services:
     volumes:
       - ./config/radicale:/var/radicale/config:ro
       - ./data/radicale:/var/radicale/data
+
   mailserver:
-    image: docker.io/mailserver/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     container_name: mailserver
     restart: always
     hostname: mail
@@ -49,8 +53,8 @@ services:
       - ./data/mailserver/mail:/var/mail
       - ./data/mailserver/state:/var/mail-state
       - ./data/mailserver/logs:/var/log/mail
+      - ./data/mailserver/config:/tmp/docker-mailserver
       - ./data/letsencrypt:/etc/letsencrypt:ro
-      - ./config/mailserver:/tmp/docker-mailserver
       - /etc/localtime:/etc/localtime:ro
     environment:
       - ONE_DIR=1
@@ -65,4 +69,10 @@ services:
       - ENABLE_SPAMASSASSIN=1
       - SPAMASSASSIN_SPAM_TO_INBOX=1
       - MOVE_SPAM_TO_JUNK=1
-    cap_add: [ "NET_ADMIN", "SYS_PTRACE" ]
+    cap_add:
+      - "NET_ADMIN"
+      - "SYS_PTRACE"
+
+networks:
+  default:
+    name: service_network
