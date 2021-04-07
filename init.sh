@@ -12,19 +12,24 @@
 DOMAIN="piotr-machura.com"
 
 # Message formatting function
-function msg() {
-    echo -e "\e[1;37m=>$2 $1 \e[m"
-}
+# Message formatting functions
 green="\e[1;32m"
 yellow="\e[1;33m"
-DEFAULT_DOMAIN="piotr-machura.com"
+red="\e[1;31m"
+bold="\e[1;37m"
+teal="\e[1;36m"
+normal="\e[m"
+function msg() {
+    echo -e "$bold=>$2 $1 \e[m"
+}
 
+DEFAULT_DOMAIN="piotr-machura.com"
 if [[ "$DOMAIN" != "$DEFAULT_DOMAIN" ]]; then
     msg "Replacing $DEFAULT_DOMAIN with $DOMAIN" $yellow
     # find ./config ./docker-compose.yml -type f -exec sed -i -e "s/$DEFAULT_DOMAIN/$DOMAIN/g" {} \;
     msg "Done" $green
 fi
-msg "Initializing with domain $DOMAIN" $green
+msg "Initializing with domain $DOMAIN" $teal
 
 if [[ -z "$(command -v docker 2>/dev/null)" ]]; then
     msg "No Docker engine in PATH, installing" $yellow
@@ -43,7 +48,7 @@ else
     msg "Found docker-compose" $green
 fi
 
-msg "Configuring the firewall" $yellow
+msg "Configuring the firewall" $teal
 firewall-cmd --permanent --zone=public --add-service=http
 firewall-cmd --permanent --zone=public --add-service=https
 firewall-cmd --permanent --zone=public --add-service=imap
@@ -58,12 +63,23 @@ if [[ ! -f "./data/mailserver/setup.sh" ]]; then
     msg "Done" $green
 fi
 
-msg "Starting the containers" $yellow
+msg "Starting the containers" $teal
 docker-compose up --detach
 msg "Initial setup complete" $green
-if [[ ! -z $(ls ./data/letsencrypt/live &>/dev/null) ]]; then
+
+if [[ -z $(ls ./data/letsencrypt/live 2>/dev/null) ]]; then
     msg "No certificates found, launching Certbot" $yellow
     docker exec -it nginx-certbot \
         certbot --nginx --agree-tos -d "$DOMAIN" -d "www.$DOMAIN" -d "dav.$DOMAIN" -d "mail.$DOMAIN"
+    msg "Restarting services" $yellow
+    docker-compose restart
     msg "Done" $green
 fi
+
+msg "Further steps" $teal
+echo -e "Create an email user with
+$bold  ./admin.sh -m email add myuser@$DOMAIN$normal
+and configure the email-related DNS records with
+$bold  ./admin.sh -mk$normal"
+
+msg "Deployment succesfull" $green

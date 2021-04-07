@@ -14,6 +14,7 @@ green="\e[1;32m"
 yellow="\e[1;33m"
 red="\e[1;31m"
 bold="\e[1;37m"
+teal="\e[1;36m"
 normal="\e[m"
 function msg() {
     echo -e "$bold=>$2 $1 \e[m"
@@ -22,21 +23,22 @@ _usage() {
     echo -en "$bold"
     echo -e "Server management script.$normal
 Use this to manage user accounts, SSL certificates and email server.
-$bold
+$teal
 Usage:$normal
     -ca -$green add$normal username to CardDAV server. Prompts for input.
     -cd -$red delete$normal username from CardDAV server. Prompts for input.
     -cl - list CardDAV users.
     -s  - obtain SSL certificates for $DOMAIN, www.$DOMAIN, dav.$DOMAIN, and mail.$DOMAIN using Certbot.
     -m  - pass arguments to docker-mailserver's$yellow setup.sh$normal. Add$green help$normal for more information.
+    -mk - generate a DKIM key for your mailserver.$yellow Warning:$normal there must be at least one email account created.
     -h  - display this message."
 }
 case $1 in
     "-ca")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        echo -ne "$bold=>$green Username:$normal "
+        echo -ne "$bold=>$teal Username:$normal "
         read -r user
-        echo -ne "$bold=>$green Password:$normal "
+        echo -ne "$bold=>$teal Password:$normal "
         read -rs pass
         # Add users to mailserver and radicale
         docker exec -t radicale \
@@ -70,7 +72,20 @@ case $1 in
         ./data/mailserver/setup.sh -c mailserver -p $(pwd)/data/mailserver/config "${@:2}"
         ;;
 
-    "-h" )
+    "-mk")
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        msg "Generating DKIM keys for $DOMAIN" $teal
+        ./admin.sh -m config dkim
+        msg "DKIM TXT record:" $bold
+        cat data/mailserver/config/opendkim/keys/$DOMAIN/mail.txt | tr -d '\n()' | sed 's/"[\t| ]*"//g'
+        echo ''
+        msg "SPF TXT record:" $bold
+        echo -e "\tIN\tTXT\t\"v=spf1 mx a:mail.$DOMAIN -all\""
+        msg "DMARC TXT record:" $bold
+        echo -e "_dmarc\tINT\tTXT\t\"v=DMARC1; p=none; rua=mailto:dmarc.report@$DOMAIN; ruf=mailto:dmarc.report@$DOMAIN; sp=none; ri=86400\""
+        ;;
+
+    "-h")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
         _usage
         ;;
