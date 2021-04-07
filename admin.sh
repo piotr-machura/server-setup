@@ -35,9 +35,9 @@ case $1 in
     "-ca")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
         echo -ne "$bold=>$green Username:$normal "
-        read user
+        read -r user
         echo -ne "$bold=>$green Password:$normal "
-        read -s pass
+        read -rs pass
         # Add users to mailserver and radicale
         docker exec -t radicale \
             htpasswd -B -b /var/radicale/data/users "$user" "$pass"
@@ -47,7 +47,7 @@ case $1 in
     "-cd")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
         echo -ne "$bold=>$yellow Username:$normal "
-        read user
+        read -r user
         docker exec -t radicale \
             htpasswd -D /var/radicale/data/users "$user"
         msg "Removed $user from CardDAV server" $green
@@ -55,7 +55,7 @@ case $1 in
 
     "-cl")
         [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        while read line; do echo ${line%%:*}; done < ./data/radicale/users
+        while read -r line; do echo ${line%%:*}; done < ./data/radicale/users
         ;;
 
     "-s")
