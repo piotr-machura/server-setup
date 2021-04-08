@@ -14,6 +14,7 @@ DEFAULT_DOMAIN="piotr-machura.com"
 # Message formatting
 green="\e[1;32m"
 yellow="\e[1;33m"
+blue="\e[1;34m"
 red="\e[1;31m"
 bold="\e[1;37m"
 teal="\e[1;36m"
@@ -24,19 +25,19 @@ msg() {
 }
 
 _usage() {
-    echo -en "$bold"
-    echo -e "Server deployment and management script.$normal
-Use this to install all of the required tools, manage user accounts, SSL certificates and email server.
+    echo -en "$blue"
+    echo -e "USAGE:$bold
+    Server deployment and management script.$normal
+    Use this to install all of the required tools, manage user accounts, SSL certificates and email server.
 $teal
-Usage:$normal
+    Flags:$normal
     $bold-i$normal  -$yellow initialize$normal the server, downloading the necessary tools.
     $bold-da$normal -$green add$normal username to CardDAV server. Prompts for input.
     $bold-dd$normal -$red delete$normal username from CardDAV server. Prompts for input.
     $bold-dl$normal - list CardDAV users.
     $bold-s$normal  - obtain SSL certificates for $DOMAIN, www.$DOMAIN, dav.$DOMAIN, and mail.$DOMAIN using Certbot.
     $bold-m$normal  - pass arguments to docker-mailserver's$yellow setup.sh$normal. Add$green help$normal for more information.
-    $bold-mk$normal - generate a DKIM key for your mailserver.$yellow Warning:$bold there must be at least one email account created.$normal.
-                      Prints all of the required DNS records if key already exists.
+    $bold-mk$normal - generate/print a DKIM key for your mailserver.$yellow Warning:$bold at least one email account must exist before generation.$normal
     $bold-h$normal  - display this message."
 }
 
@@ -68,10 +69,11 @@ case $1 in
         fi
 
         msg "Configuring the firewall" $teal
-        firewall-cmd --permanent --zone=public --add-service=http
-        firewall-cmd --permanent --zone=public --add-service=https
-        firewall-cmd --permanent --zone=public --add-service=imap
-        firewall-cmd --permanent --zone=public --add-service=smtp
+        serv=$(firewall-cmd --list-services --zone=public)
+        [[ ! "$serv" == *"http"* ]] && firewall-cmd --permanent --zone=public --add-service=http
+        [[ ! "$serv" == *"https"* ]] && firewall-cmd --permanent --zone=public --add-service=https
+        [[ ! "$serv" == *"imap"* ]] && firewall-cmd --permanent --zone=public --add-service=imap
+        [[ ! "$serv" == *"smtp"* ]] && firewall-cmd --permanent --zone=public --add-service=smtp
         firewall-cmd --reload
         msg "Done" $green
 
@@ -150,9 +152,9 @@ $bold  ./admin.sh -mk$normal"
         cat data/mailserver/config/opendkim/keys/$DOMAIN/mail.txt | tr -d '\n()' | sed 's/"[\t| ]*"//g' | sed "s/[\t| ];.*//"
         echo ''
         msg "SPF TXT record:" $teal
-        echo -e "\tIN\tTXT\t\"v=spf1 mx a:mail.$DOMAIN -all\""
+        echo -e "\t\tIN\tTXT\t\"v=spf1 mx a:mail.$DOMAIN -all\""
         msg "DMARC TXT record:" $teal
-        echo -e "_dmarc\tIN\tTXT\t\"v=DMARC1; p=none; rua=mailto:dmarc.report@$DOMAIN; ruf=mailto:dmarc.report@$DOMAIN; sp=none; ri=86400\""
+        echo -e "_dmarc\t\tIN\tTXT\t\"v=DMARC1; p=none; rua=mailto:dmarc.report@$DOMAIN; ruf=mailto:dmarc.report@$DOMAIN; sp=none; ri=86400\""
         ;;
 
     "-h")
