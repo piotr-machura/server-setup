@@ -22,3 +22,9 @@ RUN set -ex; \
         --no-interaction \
         --optimize-autoloader --apcu-autoloader \
         update;
+
+RUN set -ex; \
+    apt-get install -y --no-install-recommends gpg; \
+    mkdir -p /keys; \
+    chown www-data /keys;
+

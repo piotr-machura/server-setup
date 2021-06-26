@@ -6,14 +6,7 @@ server {
         root /usr/share/nginx/html/default;
         index index.html index.htm;
     }
-
-    location /mail/ {
-        proxy_set_header Host $host;
-        proxy_pass http://roundcube:80/;
-    }
-
+    error_page 403 /403.html;
     error_page 404 /404.html;
-    location /404.html {
-        root   /usr/share/nginx/html/default;
-    }
+    error_page 500 502 503 504 /5xx.html;
 }

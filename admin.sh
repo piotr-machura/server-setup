@@ -21,7 +21,7 @@ teal="\e[1;36m"
 normal="\e[m"
 
 msg() {
-    echo -e "$2=>$bold $1 \e[m"
+    echo -e "$2::$bold $1 \e[m"
 }
 
 _usage() {
@@ -43,70 +43,81 @@ $teal
 
 case $1 in
     "-i")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1:  ${@:2}" "$red" && _usage && exit 1
         if [[ "$DOMAIN" != "$DEFAULT_DOMAIN" ]]; then
-            msg "Replacing $DEFAULT_DOMAIN with $DOMAIN" $yellow
+            msg "Replacing $DEFAULT_DOMAIN with $DOMAIN" "$yellow"
             find ./config ./docker-compose.yml -type f -exec sed -i -e "s/$DEFAULT_DOMAIN/$DOMAIN/g" {} \;
-            msg "Done" $green
+            msg "Done" "$green"
         fi
-        msg "Initializing with domain $DOMAIN" $teal
+        msg "Initializing with domain $DOMAIN" "$teal"
 
         if [[ -z "$(command -v docker 2>/dev/null)" ]]; then
-            msg "No Docker engine in PATH, installing" $yellow
+            msg "No Docker engine in PATH, installing" "$yellow"
             dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null
             dnf install docker-ce docker-ce-cli containerd.io > /dev/null
-            msg "Done" $green
+            msg "Done" "$green"
         else
-            msg "Found Docker engine" $green
+            msg "Found Docker engine" "$green"
         fi
         if [[ -z "$(command -v docker-compose 2>/dev/null)" ]]; then
-            msg "No docker-compose in PATH, installing" $yellow
+            msg "No docker-compose in PATH, installing" "$yellow"
             curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
             chmod +x /usr/bin/docker-compose
-            msg "Done" $green
+            msg "Done" "$green"
         else
-            msg "Found docker-compose" $green
+            msg "Found docker-compose" "$green"
         fi
 
-        msg "Configuring the firewall" $teal
+        msg "Configuring the firewall" "$teal"
         serv=$(firewall-cmd --list-services --zone=public)
         [[ ! "$serv" == *"http"* ]] && firewall-cmd --permanent --zone=public --add-service=http
         [[ ! "$serv" == *"https"* ]] && firewall-cmd --permanent --zone=public --add-service=https
         [[ ! "$serv" == *"imap"* ]] && firewall-cmd --permanent --zone=public --add-service=imap
         [[ ! "$serv" == *"smtp"* ]] && firewall-cmd --permanent --zone=public --add-service=smtp
         firewall-cmd --reload
-        msg "Done" $green
+        msg "Done" "$green"
 
         if [[ ! -f "./data/mailserver/setup.sh" ]]; then
-            msg "Mailserver admin script not found, downloading" $yellow
+            msg "Mailserver admin script not found, downloading" "$yellow"
             curl https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/v9.0.1/setup.sh > ./data/mailserver/setup.sh
             chmod +x ./data/mailserver/setup.sh
-            msg "Done" $green
+            msg "Done" "$green"
         fi
 
-        msg "Starting the containers" $teal
+        msg "Copying .dist nginx config" "$yellow"
+        for file in ./config/nginx/*.conf.dist; do
+            newname=${file/.dist/}
+            if [[ ! -f "$newname" ]]; then
+                cp "$file" "$newname"
+            else
+                msg "Found $newname." "$green"
+            fi
+        done
+        msg "Done" "$green"
+
+        msg "Starting the containers" "$teal"
         docker-compose up --detach
-        msg "Initial setup complete" $green
+        msg "Initial setup complete" "$green"
 
         if [[ -z $(ls ./data/letsencrypt/live 2>/dev/null) ]]; then
-            msg "No certificates found, launching Certbot" $yellow
+            msg "No certificates found, launching Certbot" "$yellow"
             docker exec -it nginx-certbot \
                 certbot --nginx --agree-tos -d "$DOMAIN" -d "www.$DOMAIN" -d "dav.$DOMAIN" -d "mail.$DOMAIN"
-            msg "Restarting services" $yellow
+            msg "Restarting services" "$yellow"
             docker-compose restart
-            msg "Done" $green
+            msg "Done" "$green"
         fi
 
-        msg "Further steps" $teal
+        msg "Further steps" "$teal"
         echo -e "Create an email user with
 $bold  ./admin.sh -m email add myuser@$DOMAIN$normal
 and configure the email-related DNS records with
 $bold  ./admin.sh -mk$normal"
-        msg "Deployment succesfull" $green
+        msg "Deployment succesfull" "$green"
         ;;
 
     "-da")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
         echo -ne "$bold=>$teal Username:$normal "
         read -r user
         echo -ne "$bold=>$teal Password:$normal "
@@ -114,54 +125,58 @@ $bold  ./admin.sh -mk$normal"
         # Add users to mailserver and radicale
         docker exec -t radicale \
             htpasswd -B -b /var/radicale/data/users "$user" "$pass"
-        msg "Added $user to CardDAV server" $green
+        msg "Added $user to CardDAV server" "$green"
         ;;
 
     "-dd")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
         echo -ne "$bold=>$yellow Username:$normal "
         read -r user
         docker exec -t radicale \
             htpasswd -D /var/radicale/data/users "$user"
-        msg "Removed $user from CardDAV server" $green
+        msg "Removed $user from CardDAV server" "$green"
         ;;
 
     "-dl")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
-        while read -r line; do echo ${line%%:*}; done < ./data/radicale/users
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
+        while read -r line; do echo "${line%%:*}"; done < ./data/radicale/users
+        msg "Success" "$green"
         ;;
 
     "-s")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
         docker exec -it nginx-certbot \
             certbot --nginx --agree-tos -d "$DOMAIN" -d "www.$DOMAIN" -d "dav.$DOMAIN" -d "mail.$DOMAIN"
+		docker-compose restart webserver
+        msg "Success" "$green"
         ;;
 
     "-m")
-        ./data/mailserver/setup.sh -c mailserver -p $(pwd)/data/mailserver/config "${@:2}"
+        ./data/mailserver/setup.sh -c mailserver -p "$(pwd)/data/mailserver/config" "${@:2}"
+        msg "Success" "$green"
         ;;
 
     "-mk")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
         if [[ -z $(ls ./data/mailserver/config/opendkim/keys) ]]; then
-            msg "Generating DKIM keys for $DOMAIN" $teal
+            msg "Generating DKIM keys for $DOMAIN" "$teal"
             ./admin.sh -m config dkim
         fi
-        msg "DKIM TXT record:" $teal
+        msg "DKIM TXT record:" "$teal"
         # The public key is VERY ugly, unix magic fixes it
-        cat data/mailserver/config/opendkim/keys/$DOMAIN/mail.txt | tr -d '\n()' | sed 's/"[\t| ]*"//g' | sed "s/[\t| ];.*//"
+        cat "data/mailserver/config/opendkim/keys/$DOMAIN/mail.txt" | tr -d '\n()' | sed 's/"[\t| ]*"//g' | sed "s/[\t| ];.*//"
         echo ''
-        msg "SPF TXT record:" $teal
+        msg "SPF TXT record:" "$teal"
         echo -e "\t\tIN\tTXT\t\"v=spf1 mx a:mail.$DOMAIN -all\""
-        msg "DMARC TXT record:" $teal
+        msg "DMARC TXT record:" "$teal"
         echo -e "_dmarc\t\tIN\tTXT\t\"v=DMARC1; p=none; rua=mailto:dmarc.report@$DOMAIN; ruf=mailto:dmarc.report@$DOMAIN; sp=none; ri=86400\""
         ;;
 
     "-h")
-        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" $red && _usage && exit 1
+        [[ "$#" != "1" ]] && msg "Illegal arguments for $1: ${@:2}" "$red" && _usage && exit 1
         _usage
         ;;
     * )
-        msg "Unknown argument: $1" $red && _usage && exit 1
+        msg "Unknown argument: $1" "$red" && _usage && exit 1
         ;;
 esac

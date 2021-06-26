@@ -1,6 +1,7 @@
 server {
     listen 80;
     server_name mail.piotr-machura.com;
-
-    return 301 https://piotr-machura.com/mail/
+    location / {
+        proxy_pass http://roundcube:80/;
+    }
 }
