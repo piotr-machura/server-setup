@@ -21,7 +21,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./config/roundcube:/var/roundcube/config:ro
-      - ./data/roundcube:/var/roundcube/db
+      - ./data/roundcube/db:/var/roundcube/db
+      - ./data/roundcube/pgp:/keys
     environment:
       - ROUNDCUBEMAIL_DB_TYPE=sqlite
       - ROUNDCUBEMAIL_SKIN=elastic
