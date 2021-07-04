@@ -66,9 +66,8 @@ messages not being flagged as spam. They require the server to be already runnin
 [#Mail server administration](#mail-server-administration).
 
 ## First launch
-All of the following steps are accomplished using the `./admin.sh` script provided in the associated
-[GitHub](https://github.com/piotr-machura/personal-server/) repository. Edit the `DOMAIN` variable and use `chmod + x
-./admin.sh` followed by `./admin.sh -h` to view all the available options.
+All of the following steps are accomplished using the provided `./admin.sh` script. Edit the `DOMAIN` variable and use
+`chmod + x ./admin.sh` followed by `./admin.sh -h` to view all the available options.
 
 To make sure our host machine is ready for launch run `./admin.sh -i`. The flag assumes the host system is running
 CentOS (it uses `firewall-cmd` and `dnf`), comment that section to configure your firewall and install
