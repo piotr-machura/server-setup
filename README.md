@@ -3,23 +3,23 @@ Collection of FOSS Docker containers, composed of
 
 - **Web server:** [nginx](https://nginx.org/), modified to include [certbot](https://certbot.eff.org) for ease of
   obtaining and renewing LetsEncrypt SSL certificates.
-- **Email stack:** [docker-mailserver](https://docker-mailserver.github.io/docker-mailserver/v9.1/), configured to maximize
-  the probability of not landing in Gmails spam folder.
-- **Web mail slient:** [Roundcube](https://roundcube.net/) with
+- **Email stack:** [docker-mailserver](https://docker-mailserver.github.io/docker-mailserver/v9.1/), configured with
+  DKIM/SPF/DMARC.
+- **Webmail client:** [Roundcube](https://roundcube.net/) with
   [context-menu](https://github.com/johndoh/roundcube-contextmenu),
   [persistent-login](https://github.com/mfreiholz/persistent_login) and
   [CardDAV](https://github.com/mstilkerich/rcmcarddav) plugins, set up to include GPG support.
 - **CardDAV server:** [Radicale](https://radicale.org/3.0.html), used to sync Roundcube contacts with e.g. an
   Android phone.
 
-A simplified schema of the server is portrayed below.
+A simplified scheme of the server is portrayed below.
 
 ![Simplified server diagram](./server_diagram.jpg)
 
 ## Setting up the server
 Notation used:
 - X.X.X.X - the static host **IPv4 address**.
-- example.com - the **base domain** purchased at the registrar.
+- example.com - your **domain name** purchased at the registrar.
 - `./` - the root of the project (ie. the directory containing docker-compose.yml).
 
 ### Project structure
@@ -47,7 +47,9 @@ The project structure is as follows:
 ├─ docker-compose.yml
 └─ admin.sh
 ```
-The `./data` folder contains all of the persistent Docker volumes, easy to backup and 
+The `./data` folder contains all of the persistent Docker volumes, easy to backup and restore in the case of failure.
+
+Static website content found on example.com and www.example.com is hosted from `./data/nginx/default`.
 
 ### DNS records
 
@@ -86,9 +88,9 @@ The docker-mailserver container comes with it's own script for creating and mana
 other functionalities. This script is downloaded by `./admin.sh` and properly wrapped with the `-m` flag.
 
 Create a user with `./admin.sh -m email add username@example.com` and provide a password when prompted. Once a user has
-been created we can generate the DNS text records used to prevent spoofing our email address. Use `./admin.sh -mk` and
-add the contents in appropriate records in your DNS provider's interface. The format is `<host name> IN TXT <contents>`,
-note that the SPF record has an empty host name.
+been created DNS text records used to prevent spoofing can be geneated. Use `./admin.sh -mk` and add the contents in
+appropriate records in your DNS provider's interface. The format is `<host name> IN TXT <contents>`, note that the SPF
+record has an empty host name.
 
 After you modify your DNS records you can use a tool like [AppmailDev](https://appmaildev.com/)'s DKIM test to verify
 that the messages are signed correctly. Simply navigate to example.com/mail in your browser, log into your newly
