@@ -22,6 +22,20 @@ Notation used:
 - example.com - your **domain name** purchased at the registrar.
 - `./` - the root of the project (ie. the directory containing docker-compose.yml).
 
+### Firewall requirements
+The following ports should be allowed by the firewall
+
+- 80 (HTTP)
+- 443 (HTTPS)
+- 25 (SMTP)
+- 143 (IMAP)
+- 587 (ESMTP)
+- 993 (IMAPS)
+
+Beware that Docker is known to ignore iptables wrappers such as ufw and firewall-cmd, so things *may* still work even
+without any firewall configuration. It is good practice for different iptables rule providers to at the very least agree
+(if not *not interfere*) witch each other, though.
+
 ### Project structure
 The project structure is as follows:
 ```
@@ -70,13 +84,13 @@ All of the following steps are accomplished using the provided `./admin.sh` scri
 `chmod + x ./admin.sh` followed by `./admin.sh -h` to view all the available options.
 
 To make sure our host machine is ready for launch run `./admin.sh -i`. The flag assumes the host system is running
-CentOS (it uses `firewall-cmd` and `dnf`), comment that section to configure your firewall and install
-Docker/docker-compose  manually if you use a different OS.
+CentOS (it uses `firewall-cmd` and `dnf`), but should detect if that is not the case and prompt for manual installation
+of Docker and firewall configuration.
 
 The script will check if Docker, docker-compose and other required tools are available and download them as necessary,
-as well as copy the `./config/nginx/*.conf.dist` files and launch Certbot in order to obtain all SSL certificates if
-they are not already present. Follow the steps when prompted by Certbot and agree to modifying the configuration to
-create redirects from HTTP to HTTPS in all of the `./config/nginx/*.conf` files.
+as well as copy the `./config/nginx/*.conf.dist` files to their destination and launch Certbot in order to obtain all
+SSL certificates if they are not already present. Follow the steps when prompted by Certbot and agree to modifying the
+configuration to create redirects from HTTP to HTTPS in all of the `./config/nginx/*.conf` files.
 
 After it is done visit example.com in your browser. You should be greeted by a default nginx
 welcome screen and a green padlock on the URL bar signifying encrypted connection. Add a basic

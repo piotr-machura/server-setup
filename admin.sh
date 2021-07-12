@@ -67,6 +67,10 @@ case $1 in
         msg "Initializing with domain $DOMAIN" "$cyan"
 
         if [[ -z "$(command -v docker 2>/dev/null)" ]]; then
+            if [[ -z "$(command -v dnf 2>/dev/null)" ]]; then
+                msg "Manual docker installation required" "$red"
+                exit 1
+            fi
             msg "No Docker engine in PATH, installing" "$yellow"
             dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null
             dnf install docker-ce docker-ce-cli containerd.io > /dev/null
@@ -83,14 +87,19 @@ case $1 in
             msg "Found docker-compose" "$green"
         fi
 
-        msg "Configuring the firewall" "$cyan"
-        serv=$(firewall-cmd --list-services --zone=public)
-        [[ ! "$serv" == *"http"* ]] && firewall-cmd --permanent --zone=public --add-service=http
-        [[ ! "$serv" == *"https"* ]] && firewall-cmd --permanent --zone=public --add-service=https
-        [[ ! "$serv" == *"imap"* ]] && firewall-cmd --permanent --zone=public --add-service=imap
-        [[ ! "$serv" == *"smtp"* ]] && firewall-cmd --permanent --zone=public --add-service=smtp
-        firewall-cmd --reload
-        msg "Done" "$green"
+        if [[ -z "($(command -v firewall-cmd 2>/dev/null)" ]]; then
+            msg "Unable to configure firewall automatically" "$yellow"
+            msg "Consult the README for manual configuration" "$yellow"
+        else
+            msg "Configuring the firewall" "$cyan"
+            serv=$(firewall-cmd --list-services --zone=public)
+            [[ ! "$serv" == *"http"* ]] && firewall-cmd --permanent --zone=public --add-service=http
+            [[ ! "$serv" == *"https"* ]] && firewall-cmd --permanent --zone=public --add-service=https
+            [[ ! "$serv" == *"imap"* ]] && firewall-cmd --permanent --zone=public --add-service=imap
+            [[ ! "$serv" == *"smtp"* ]] && firewall-cmd --permanent --zone=public --add-service=smtp
+            firewall-cmd --reload
+            msg "Done" "$green"
+        fi
 
         if [[ ! -f "./data/mailserver/setup.sh" ]]; then
             msg "Mailserver admin script not found, downloading" "$yellow"
@@ -111,7 +120,7 @@ case $1 in
         msg "Done" "$green"
 
         msg "Starting the containers" "$cyan"
-        docker-compose up --detach
+        docker-compose up --detach --build
         msg "Initial setup complete" "$green"
 
         if [[ -z $(ls ./data/letsencrypt/live 2>/dev/null) ]]; then
