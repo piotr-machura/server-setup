@@ -85,7 +85,7 @@ All of the following steps are accomplished using the provided `./admin.sh` scri
 
 To make sure our host machine is ready for launch run `./admin.sh -i`. The flag assumes the host system is running
 CentOS (it uses `firewall-cmd` and `dnf`), but should detect if that is not the case and prompt for manual installation
-of Docker and firewall configuration.
+of Docker and [firewall configuration](#firewall-requirements).
 
 The script will check if Docker, docker-compose and other required tools are available and download them as necessary,
 as well as copy the `./config/nginx/*.conf.dist` files to their destination and launch Certbot in order to obtain all
